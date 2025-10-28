@@ -4,6 +4,9 @@ import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.api.objects.Update;
 
 public class BotController extends TelegramLongPollingBot {
+    static {
+
+    }
     @Override
     public String getBotUsername() {
         return "Зеркало";
@@ -16,6 +19,5 @@ public class BotController extends TelegramLongPollingBot {
 
     @Override
     public void onUpdateReceived(Update update) {
-        System.out.println(update);
     }
 }
