@@ -51,7 +51,7 @@ public class DB {
             // Форматируем дату
             String formattedDate = currentDate.format(formatter);
             SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
-            pstmt.setDate(1, new java.sql.Date(sdf.parse(formattedDate).getTime()));
+            pstmt.setDate(1, new Date(sdf.parse(formattedDate).getTime()));
             pstmt.setInt(2, user_id);
             pstmt.executeUpdate();
         } catch (SQLException | ParseException e) {
@@ -97,8 +97,8 @@ public class DB {
             pstmt.setInt(1, user_id);
             pstmt.setString(2, username);
             pstmt.setString(3, first_name);
-            pstmt.setDate(4, new java.sql.Date(sdf.parse(formattedDate).getTime()));
-            pstmt.setDate(5, new java.sql.Date(sdf.parse(formattedDate).getTime()));
+            pstmt.setDate(4, new Date(sdf.parse(formattedDate).getTime()));
+            pstmt.setDate(5, new Date(sdf.parse(formattedDate).getTime()));
             pstmt.executeUpdate();
             increment_activity_count(user_id);
         } catch (ParseException e) {
@@ -153,6 +153,20 @@ public class DB {
         try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setInt(1, message_id);
             pstmt.executeUpdate();
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+    public static String get_user_info(int user_id){
+        String sql = "SELECT COUNT(*) as total_messages FROM users WHERE user_id = ?";
+        String user_info = "";
+        try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setInt(1, user_id);
+            ResultSet rs = pstmt.executeQuery();
+            if (rs.next()) {
+                user_info = String.valueOf(rs.getInt("total_messages"));
+            }
+            return "Количество сообщений в диалоге: "+user_info+"\n";
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }

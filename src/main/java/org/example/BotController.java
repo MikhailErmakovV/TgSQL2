@@ -22,22 +22,27 @@ public class BotController extends TelegramLongPollingBot {
     public void onUpdateReceived(Update update) {
         var msg = update.getMessage();
         var user = msg.getFrom();
+        boolean isCommand = msg.isCommand();
         if(msg.getText().equals("/start")){
             try {
                 if(DB.checkIfUserExists((int)user.getId().longValue())){
                     sendText(user.getId(),"С возвращением, " + user.getFirstName() + "!");
                 } else {
-                    sendText(user.getId(),"Привет, " + user.getFirstName() + "!");
+                    sendText(user.getId(),"Привет, " + user.getFirstName() + "! Это модель gpt2 без VPN! Задай мне любой вопрос!");
                 }
             } catch (SQLException e) {
                 throw new RuntimeException(e);
             }
         }
         DB.insert_message(user.getId(),msg.getText(),user.getUserName(),user.getFirstName());
-        if(msg.isCommand()){
+        if(isCommand){
             if(msg.getText().equals("/stats")){
                 String stats = DB.get_user_statistics((int)user.getId().longValue());
                 sendText(user.getId(),stats);
+            }
+            if(msg.getText().equals("/info")){
+                String stats = DB.get_user_info((int)user.getId().longValue());
+                sendText(user.getId(),stats+"Использумая модель: gpt2 \nСтатус работы: в самом разгаре!)");
             }
             if(msg.getText().equals("/history")){
                 String history = DB.get_user_messages((int)user.getId().longValue());
@@ -48,6 +53,8 @@ public class BotController extends TelegramLongPollingBot {
                         + "/history - история сообщений\n" + "/help - помощь\n" + "/start - приветствие";
                 sendText(user.getId(),help);
             }
+        } else {
+            sendText(user.getId(),LLM.generate(msg.getText()));
         }
     }
 

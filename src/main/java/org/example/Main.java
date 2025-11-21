@@ -16,7 +16,6 @@ public class Main {
                     throw new RuntimeException(e);
                 }
             }).start();
-            System.out.println("Подключение к базе данных успешно установлено.");
             TelegramBotsApi botsApi = new TelegramBotsApi(DefaultBotSession.class);
             botsApi.registerBot(new BotController());
         } catch (TelegramApiException e) {
