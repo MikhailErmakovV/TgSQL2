@@ -1,12 +1,13 @@
 package org.example;
 
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
+import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Update;
+import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
+
+import java.sql.SQLException;
 
 public class BotController extends TelegramLongPollingBot {
-    static {
-
-    }
     @Override
     public String getBotUsername() {
         return "Зеркало";
@@ -19,5 +20,45 @@ public class BotController extends TelegramLongPollingBot {
 
     @Override
     public void onUpdateReceived(Update update) {
+        var msg = update.getMessage();
+        var user = msg.getFrom();
+        if(msg.getText().equals("/start")){
+            try {
+                if(DB.checkIfUserExists((int)user.getId().longValue())){
+                    sendText(user.getId(),"С возвращением, " + user.getFirstName() + "!");
+                } else {
+                    sendText(user.getId(),"Привет, " + user.getFirstName() + "!");
+                }
+            } catch (SQLException e) {
+                throw new RuntimeException(e);
+            }
+        }
+        DB.insert_message(user.getId(),msg.getText(),user.getUserName(),user.getFirstName());
+        if(msg.isCommand()){
+            if(msg.getText().equals("/stats")){
+                String stats = DB.get_user_statistics((int)user.getId().longValue());
+                sendText(user.getId(),stats);
+            }
+            if(msg.getText().equals("/history")){
+                String history = DB.get_user_messages((int)user.getId().longValue());
+                sendText(user.getId(),history);
+            }
+            if(msg.getText().equals("/help")){
+                String help = "Доступные команды:\n" + "/stats - статистика\n"
+                        + "/history - история сообщений\n" + "/help - помощь\n" + "/start - приветствие";
+                sendText(user.getId(),help);
+            }
+        }
+    }
+
+    public void sendText(Long who, String what){
+        SendMessage sm = SendMessage.builder()
+                .chatId(who.toString()) //Who are we sending a message to
+                .text(what).build();    //Message content
+        try {
+            execute(sm);                        //Actually sending the message
+        } catch (TelegramApiException e) {
+            throw new RuntimeException(e);      //Any error will be printed here
+        }
     }
 }

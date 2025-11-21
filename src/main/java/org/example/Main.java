@@ -8,15 +8,17 @@ import static org.example.DB.*;
 
 public class Main {
     public static void main(String[] args) {
-        try (Connection conn = DriverManager.getConnection(dbUrl, user, pass)) {
-            if (conn != null) {
-                DB.push_connection(conn);
-                System.out.println("Подключение к базе данных успешно установлено.");
-                TelegramBotsApi botsApi = new TelegramBotsApi(DefaultBotSession.class);
-                botsApi.registerBot(new BotController());
-            }
-        } catch (SQLException e) {
-            System.err.println(e.getMessage());
+        try {
+            new Thread(() -> {
+                try {
+                    start_connection();
+                } catch (SQLException e) {
+                    throw new RuntimeException(e);
+                }
+            }).start();
+            System.out.println("Подключение к базе данных успешно установлено.");
+            TelegramBotsApi botsApi = new TelegramBotsApi(DefaultBotSession.class);
+            botsApi.registerBot(new BotController());
         } catch (TelegramApiException e) {
             throw new RuntimeException(e);
         }
